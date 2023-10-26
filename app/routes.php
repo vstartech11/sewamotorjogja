@@ -11,7 +11,7 @@ use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app) {
 
-    // read pelangan
+    // read pelangan done
     $app->get('/pelanggan', function (Request $request, Response $response) {
         $db = $this->get(PDO::class);
 
@@ -22,7 +22,7 @@ return function (App $app) {
         return $response->withHeader("Content-Type", "application/json");
     });
 
-    // create pelanggan
+    // create pelanggan done
     $app->post('/pelanggan', function (Request $request, Response $response) {  
         $db = $this->get(PDO::class);
 
@@ -45,7 +45,7 @@ return function (App $app) {
         return $response->withHeader("Content-Type", "application/json");
     });
 
-    // update pelanggan
+    // update pelanggan done
     $app->put('/pelanggan/{id}', function (Request $request, Response $response, $args) {
     $db = $this->get(PDO::class);
 
