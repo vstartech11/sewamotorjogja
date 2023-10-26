@@ -70,7 +70,7 @@ return function (App $app) {
         return $response->withHeader("Content-Type", "application/json");
     });
 
-    // delete pelanggan
+    // delete pelanggan done
     $app->delete('/pelanggan/{id}', function (Request $request, Response $response, $args) {
         $db = $this->get(PDO::class);
         $pelangganId = $args['id'];
@@ -203,7 +203,7 @@ return function (App $app) {
         return $response->withHeader("Content-Type", "application/json");
     });
 
-    // read transaksi
+    // read transaksi done
     $app->get('/transaksi', function (Request $request, Response $response) {
         $db = $this->get(PDO::class);
 
@@ -224,16 +224,38 @@ return function (App $app) {
         $tanggalSewa = $data['tanggal_sewa'];
         $tanggalKembali = $data['tanggal_kembali'];
 
-        $query = $db->prepare('CALL TambahTransaksi(:id_pelanggan, :id_motor, :tanggal_sewa, :tanggal_kembali)');
-        $query->bindParam(':id_pelanggan', $pelanggan, PDO::PARAM_INT);
-        $query->bindParam(':id_motor', $motor, PDO::PARAM_INT);
-        $query->bindParam(':tanggal_sewa', $tanggalSewa, PDO::PARAM_STR);
-        $query->bindParam(':tanggal_kembali', $tanggalKembali, PDO::PARAM_STR);
-        $query->execute();
-        $response->getBody()->write(json_encode([
-            'message' => 'data transaksi berhasil ditambahkan'
+        try {
+            $query = $db->prepare('CALL BacaPelangganById(:id)');
+            $query->bindParam(':id', $pelanggan, PDO::PARAM_INT);
+            $query->execute();
+            if ($query->rowCount() === 0) {
+                $response = $response->withStatus(404);
+                $response->getBody()->write(json_encode(
+                    [
+                        'message' => 'Pelanggan tidak ditemukan'
+                    ]
+                ));
+                return $response->withHeader('Content-Type', 'application/json');
+            }else {
+                $query = $db->prepare('CALL TambahTransaksi(:id_pelanggan, :id_motor, :tanggal_sewa, :tanggal_kembali)');
+                $query->bindParam(':id_pelanggan', $pelanggan, PDO::PARAM_INT);
+                $query->bindParam(':id_motor', $motor, PDO::PARAM_INT);
+                $query->bindParam(':tanggal_sewa', $tanggalSewa, PDO::FB_ATTR_DATE_FORMAT, PDO::PARAM_STR);
+                $query->bindParam(':tanggal_kembali', $tanggalKembali, PDO::FB_ATTR_DATE_FORMAT, PDO::PARAM_STR);
+                $query->execute();
+                $response->getBody()->write(json_encode(['message' => 'data transaksi berhasil ditambahkan'
         ]));
         return $response->withHeader('Content-Type', 'application/json');
+            }
+        } catch (\Throwable $th) {
+            $response = $response->withStatus(500);
+            $response->getBody()->write(json_encode(
+                [
+                    'message' => 'Database error ' . $th->getMessage()
+                ]
+            ));
+            return $response->withHeader('Content-Type', 'application/json');
+        }
     });
 
     // update transaksi
