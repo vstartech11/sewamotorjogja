@@ -214,8 +214,8 @@ return function (App $app) {
         return $response->withHeader("Content-Type", "application/json");
     });
 
-    // tambah transaksi
-    $app->post("/transaksi", function (Request $request, Request $response) {
+    // tambah transaksi done
+    $app->post("/transaksi", function (Request $request, Response $response ) {
         $db = $this->get(PDO::class);
 
         $data = $request->getParsedBody();
@@ -225,7 +225,7 @@ return function (App $app) {
         $tanggalKembali = $data['tanggal_kembali'];
 
         try {
-            $query = $db->prepare('CALL BacaPelangganById(:id)');
+            $query = $db->prepare('CALL BacaPelangganId(:id)');
             $query->bindParam(':id', $pelanggan, PDO::PARAM_INT);
             $query->execute();
             if ($query->rowCount() === 0) {
@@ -240,8 +240,8 @@ return function (App $app) {
                 $query = $db->prepare('CALL TambahTransaksi(:id_pelanggan, :id_motor, :tanggal_sewa, :tanggal_kembali)');
                 $query->bindParam(':id_pelanggan', $pelanggan, PDO::PARAM_INT);
                 $query->bindParam(':id_motor', $motor, PDO::PARAM_INT);
-                $query->bindParam(':tanggal_sewa', $tanggalSewa, PDO::FB_ATTR_DATE_FORMAT, PDO::PARAM_STR);
-                $query->bindParam(':tanggal_kembali', $tanggalKembali, PDO::FB_ATTR_DATE_FORMAT, PDO::PARAM_STR);
+                $query->bindParam(':tanggal_sewa', $tanggalSewa, PDO::PARAM_STR);
+                $query->bindParam(':tanggal_kembali', $tanggalKembali, PDO::PARAM_STR);
                 $query->execute();
                 $response->getBody()->write(json_encode(['message' => 'data transaksi berhasil ditambahkan'
         ]));
